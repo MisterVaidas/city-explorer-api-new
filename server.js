@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const weatherData = require('./data/weather.json');
+const axios = require('axios');
+require('dotenv').config();
 
 
-const PORT = process.env.PORT || 8082;
+const PORT = process.env.PORT || 8081;
+const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 
 app.use(cors());
 
@@ -16,24 +18,31 @@ app.listen(PORT, () => {
     console.log(`Server listening at port ${PORT}`);
 });
 
-app.get('/weather', (req, res) => {
-    const { lat, lon, searchQuery } = req.query;
+app.get('/weather', async (req, res) => {
+    const { searchQuery } = req.query;
+    const weatherBitUrl = `https://api.weatherbit.io/v2.0/current?city=${searchQuery}&key=${WEATHER_API_KEY}`;
 
-    let foundCity = weatherData.find(data =>
-        data.city_name.toLowerCase() === searchQuery.toLowerCase()
-    );
+    try {
+        const response = await axios.get(weatherBitUrl);
+        const weatherData = response.data.data[0];
 
-    if (!foundCity) {
-        res.status(404).send('Error: City not found');
-    } else {
+        const date = new Date();
+        const formattedDate = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        
 
-        let dailyWeather = foundCity.data.map(day => {
-            return {
-                date: day.valid_date,
-                description: day.weather.description,
-            };
-        });
+        const customResponse = {
+            city: weatherData.city_name,
+            country: weatherData.country_code,
+            date: formattedDate,
+            description: weatherData.weather.description,
+            temperature: weatherData.temp
+        }
 
-        res.send(dailyWeather);
+        res.send(customResponse);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An error occurred while fetching weather data.');
     }
 });
+
+
