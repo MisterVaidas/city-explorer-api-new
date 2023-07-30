@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const PORT = process.env.PORT || 8081;
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
+const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 
 app.use(cors());
 
@@ -45,4 +46,32 @@ app.get('/weather', async (req, res) => {
     }
 });
 
+app.get('/movies', async (req, res) => {
+    const { searchQuery } = req.query;
+    const tmdbUrl = `https://api.themoviedb.org/3/search/movie?api_key=${MOVIE_API_KEY}&query=${searchQuery}`;
 
+    try {
+        const response = await axios.get(tmdbUrl);
+        const movieData = response.data.results;
+
+        const customResponse = movieData.map(movie => {
+            let imageUrl = movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500/${movie.poster_path}`
+            : 'https://example.com/default-image.jpg';
+            return {
+                title: movie.title,
+                overview: movie.overview,
+                average_votes: movie.vote_average.toString(),
+                total_votes: movie.vote_count.toString(),
+                image_url: imageUrl,
+                popularity: movie.popularity.toString(),
+                released_on: movie.release_date
+            }
+        });
+
+        res.send(customResponse);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An error occurred while fetching movie data.');
+    }
+});
