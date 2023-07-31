@@ -17,7 +17,7 @@ const corsOptions = {
   app.use(cors(corsOptions));
   
 
-app.use(cors());
+//app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('Hello there!')
