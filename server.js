@@ -9,6 +9,14 @@ const PORT = process.env.PORT || 8081;
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 
+const corsOptions = {
+    origin: 'https://64c808c2fae9803cd5d7bcb5--splendorous-yeot-1fa456.netlify.app/',
+    optionsSuccessStatus: 200 
+  }
+  
+  app.use(cors(corsOptions));
+  
+
 app.use(cors());
 
 app.get('/', (req, res) => {
